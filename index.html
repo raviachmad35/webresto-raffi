@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebResto — Raffi Ahmad Syarief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF7EF;
+    --paper-dim:#F2ECDD;
+    --ink:#211D18;
+    --ink-soft:#59524A;
+    --chili:#C13A26;
+    --chili-dark:#9C2E1D;
+    --turmeric:#E2A73B;
+    --teal:#1F4B44;
+    --teal-light:#2E655C;
+    --line:#D9D0BE;
+    --radius-tag: 3px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  html,body{ overflow-x:hidden; width:100%; }
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Space Grotesk', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    letter-spacing:-0.01em;
+    line-height:1.05;
+  }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+  a{color:inherit; text-decoration:none;}
+  img,svg{display:block; max-width:100%;}
+  .wrap{ max-width:1120px; margin:0 auto; padding:0 28px; }
+  .section{ padding:96px 0; }
+  @media(max-width:720px){ .section{ padding:64px 0; } .wrap{padding:0 20px;} }
+  @media(max-width:420px){ .section{ padding:48px 0; } .wrap{padding:0 16px;} }
+
+  /* ===== dotted perforation divider (receipt aesthetic) ===== */
+  .perf{
+    height:18px;
+    background-image: radial-gradient(circle, var(--paper) 3px, transparent 3.5px);
+    background-size: 20px 20px;
+    background-position: center;
+  }
+  .perf.on-teal{ background-image: radial-gradient(circle, var(--teal) 3px, transparent 3.5px); }
+  .perf.on-ink{ background-image: radial-gradient(circle, var(--ink) 3px, transparent 3.5px); }
+
+  /* ===== header ===== */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:rgba(251,247,239,0.92);
+    backdrop-filter: blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{ display:flex; align-items:center; justify-content:space-between; padding:18px 0; }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-weight:700; font-size:1.3rem; }
+  .logo .mark{
+    width:30px; height:30px; background:var(--chili); border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--paper); font-family:'JetBrains Mono',monospace; font-size:0.75rem; font-weight:700;
+  }
+  .nav-links{ display:flex; gap:34px; font-size:0.95rem; color:var(--ink-soft); }
+  .nav-links a:hover{ color:var(--chili); }
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:12px 22px; border-radius:3px; font-weight:600; font-size:0.95rem;
+    border:1.5px solid var(--ink); cursor:pointer; transition:transform .18s ease, background .2s ease, box-shadow .2s ease;
+  }
+  .btn-primary{ background:var(--chili); border-color:var(--chili); color:var(--paper); box-shadow:0 8px 20px -10px rgba(193,58,38,0.6); }
+  .btn-primary:hover{ background:var(--chili-dark); border-color:var(--chili-dark); transform:translateY(-2px); box-shadow:0 12px 24px -10px rgba(193,58,38,0.55); }
+  .btn-ghost{ background:transparent; color:var(--ink); }
+  .btn-ghost:hover{ background:var(--ink); color:var(--paper); transform:translateY(-2px); }
+  .menu-toggle{
+    display:none; width:38px; height:38px; border:1.5px solid var(--ink); border-radius:3px;
+    background:none; align-items:center; justify-content:center; flex-direction:column; gap:4px; cursor:pointer; flex-shrink:0;
+  }
+  .menu-toggle span{ display:block; width:16px; height:1.5px; background:var(--ink); transition:transform .2s ease, opacity .2s ease; }
+  .menu-toggle.open span:nth-child(1){ transform:translateY(5.5px) rotate(45deg); }
+  .menu-toggle.open span:nth-child(2){ opacity:0; }
+  .menu-toggle.open span:nth-child(3){ transform:translateY(-5.5px) rotate(-45deg); }
+  .mobile-panel{
+    display:none; flex-direction:column; gap:2px; padding:6px 0 16px;
+    border-top:1px solid var(--line);
+  }
+  .mobile-panel a{
+    padding:13px 4px; font-size:0.98rem; color:var(--ink); border-bottom:1px solid var(--line);
+  }
+  .mobile-panel.open{ display:flex; }
+  @media(max-width:800px){
+    .nav .btn-primary{ display:none; }
+    .nav-links{ display:none; }
+    .menu-toggle{ display:flex; }
+  }
+  @media(min-width:801px){
+    .mobile-panel{ display:none !important; }
+  }
+
+  /* ===== hero ===== */
+  .hero{
+    padding:88px 0 70px; position:relative; overflow:hidden;
+    background:
+      radial-gradient(circle at 88% 8%, rgba(226,167,59,0.22) 0%, transparent 45%),
+      radial-gradient(circle at 4% 96%, rgba(31,75,68,0.14) 0%, transparent 42%);
+  }
+  .hero-grid{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:56px; align-items:center; position:relative; z-index:1; }
+  @media(max-width:900px){ .hero-grid{ grid-template-columns:1fr; gap:48px; } }
+  @media(max-width:600px){ .hero{ padding:44px 0 52px; } }
+  .eyebrow-tag{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--teal);
+    background:var(--paper-dim); border:1px solid var(--line); border-radius:20px;
+    padding:6px 14px; margin-bottom:22px;
+  }
+  .eyebrow-tag .dot{ width:6px; height:6px; border-radius:50%; background:var(--chili); }
+  .hero h1{ font-size:clamp(2rem, 4.6vw, 3.6rem); margin-bottom:22px; }
+  .hero p.lead{ font-size:1.05rem; color:var(--ink-soft); max-width:46ch; margin-bottom:32px; }
+  .hero-cta{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:36px; }
+  .hero-stats{ display:flex; gap:36px; flex-wrap:wrap; }
+  .hero-stats .stat b{ display:block; font-family:'Fraunces',serif; font-size:1.9rem; color:var(--teal); }
+  .hero-stats .stat span{ font-size:0.85rem; color:var(--ink-soft); }
+  @media(max-width:600px){
+    .hero-cta{ flex-direction:column; }
+    .hero-cta .btn{ width:100%; justify-content:center; }
+    .hero-stats{ gap:22px 28px; }
+    .hero-stats .stat b{ font-size:1.5rem; }
+  }
+
+  /* receipt mock in hero */
+  .receipt{
+    background:#fff; border:1px solid var(--line);
+    box-shadow: 0 24px 60px -20px rgba(33,29,24,0.35);
+    padding:26px 24px 30px; position:relative; max-width:320px; width:100%; margin:0 auto;
+    transform: rotate(2deg);
+  }
+  @media(max-width:600px){
+    .receipt{ max-width:270px; padding:22px 20px 26px; transform:rotate(1deg); }
+    .qr-block{ width:120px; height:120px; }
+  }
+  .receipt::before, .receipt::after{
+    content:""; position:absolute; left:0; right:0; height:12px;
+    background-image: radial-gradient(circle, var(--paper) 5px, transparent 5.5px);
+    background-size: 16px 16px; background-position: center;
+  }
+  .receipt::before{ top:-6px; }
+  .receipt::after{ bottom:-6px; }
+  .receipt .r-head{ text-align:center; margin-bottom:16px; }
+  .receipt .r-head b{ font-family:'JetBrains Mono',monospace; letter-spacing:0.08em; font-size:0.95rem; }
+  .receipt .r-head span{ display:block; font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--ink-soft); margin-top:4px; }
+  .qr-block{
+    width:150px; height:150px; margin:0 auto 16px; background:var(--ink);
+    display:flex; align-items:center; justify-content:center; padding:10px;
+  }
+  .qr-block svg{ width:100%; height:100%; }
+  .r-line{ display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:0.78rem; padding:5px 0; border-bottom:1px dashed var(--line); color:var(--ink-soft); }
+  .r-line b{ color:var(--ink); font-weight:500; }
+  .r-total{ display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-weight:700; padding-top:10px; margin-top:6px; }
+
+  /* ===== problem section ===== */
+  .section-teal{ background:var(--teal); color:var(--paper); }
+  .problem-head{ max-width:56ch; margin-bottom:56px; }
+  .problem-head .kicker{ font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--turmeric); margin-bottom:14px; display:block; }
+  .problem-head h2{ font-size:clamp(1.9rem,3.4vw,2.6rem); color:var(--paper); }
+  .problem-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:rgba(251,247,239,0.18); border:1px solid rgba(251,247,239,0.18); }
+  @media(max-width:820px){ .problem-grid{ grid-template-columns:1fr; } }
+  .problem-card{ background:var(--teal); padding:34px 30px; transition:background .25s ease; }
+  .problem-card:hover{ background:var(--teal-light); }
+  @media(max-width:600px){ .problem-card{ padding:26px 22px; } }
+  .problem-card .pnum{ font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--turmeric); display:block; margin-bottom:18px; }
+  .problem-card h3{ font-size:1.2rem; color:var(--paper); margin-bottom:10px; font-weight:600; }
+  .problem-card p{ color:rgba(251,247,239,0.72); font-size:0.95rem; }
+
+  /* ===== food category strip ===== */
+  .food-strip{ background:var(--paper); padding:44px 0; border-bottom:1px solid var(--line); }
+  .food-strip-row{ display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .food-chip{ display:flex; flex-direction:column; align-items:center; gap:10px; flex:1; min-width:110px; text-align:center; }
+  .food-chip .fc-icon{
+    width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    border:1.5px dashed var(--line); transition:transform .2s ease, border-color .2s ease;
+  }
+  .food-chip:hover .fc-icon{ transform:translateY(-4px) scale(1.05); border-color:var(--chili); }
+  .food-chip .fc-icon svg{ width:32px; height:32px; }
+  .food-chip span{ font-size:0.82rem; color:var(--ink-soft); font-weight:500; }
+  @media(max-width:640px){
+    .food-strip{ padding:32px 0; }
+    .food-strip-row{ gap:20px 14px; }
+    .food-chip{ min-width:70px; flex:0 0 calc(33.333% - 14px); }
+    .food-chip .fc-icon{ width:52px; height:52px; }
+    .food-chip .fc-icon svg{ width:26px; height:26px; }
+    .food-chip span{ font-size:0.74rem; }
+  }
+  .how-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:40px; margin-top:52px; }
+  @media(max-width:820px){ .how-grid{ grid-template-columns:1fr; gap:44px; } }
+  .how-step{ position:relative; padding-left:0; }
+  .how-step .step-illus{
+    width:76px; height:76px; border-radius:50%; background:var(--paper-dim);
+    display:flex; align-items:center; justify-content:center; margin-bottom:22px;
+  }
+  .how-step .step-illus svg{ width:40px; height:40px; }
+  .how-step .step-num{ font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--chili); font-weight:600; letter-spacing:0.05em; display:block; margin-bottom:8px; }
+  @media(max-width:600px){
+    .how-step .step-illus{ width:64px; height:64px; margin-bottom:16px; }
+    .how-step .step-illus svg{ width:34px; height:34px; }
+    .how-grid{ gap:32px !important; }
+  }
+  .how-step h3{ font-size:1.25rem; margin-bottom:10px; }
+  .how-step p{ color:var(--ink-soft); font-size:0.97rem; max-width:34ch; }
+  .how-step .arrow{ display:none; }
+  @media(min-width:821px){
+    .how-step:not(:last-child)::after{
+      content:"→"; position:absolute; right:-32px; top:26px; color:var(--line); font-size:1.6rem;
+    }
+  }
+
+  /* ===== phone showcase ===== */
+  .showcase{ display:grid; grid-template-columns:1fr 1.05fr; gap:60px; align-items:center; }
+  @media(max-width:900px){ .showcase{ grid-template-columns:1fr; } }
+  .phone{
+    width:340px; margin:0 auto; background:var(--ink); border-radius:36px; padding:14px;
+    box-shadow:0 34px 70px -24px rgba(33,29,24,0.55);
+  }
+  @media(max-width:420px){ .phone{ width:94vw; max-width:340px; } }
+  .phone-screen{ background:var(--paper); border-radius:25px; overflow:hidden; }
+  .phone-topbar{ background:var(--teal); color:var(--paper); padding:18px 20px 16px; }
+  .phone-topbar .shop{ font-family:'Fraunces',serif; font-weight:600; font-size:1.15rem; }
+  .phone-topbar .meja{ font-family:'JetBrains Mono',monospace; font-size:0.74rem; opacity:0.8; margin-top:3px; }
+  .menu-item{ display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--line); }
+  .mi-thumb{ width:44px; height:44px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .mi-thumb svg{ width:25px; height:25px; }
+  .mi-body{ flex:1 1 auto; min-width:0; }
+  .menu-item .mi-name{ font-weight:600; font-size:0.95rem; line-height:1.25; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+  .menu-item .mi-desc{ font-size:0.78rem; color:var(--ink-soft); margin-top:3px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  .mi-side{ display:flex; align-items:center; gap:9px; flex-shrink:0; margin-left:auto; }
+  .menu-item .mi-price{ font-family:'JetBrains Mono',monospace; font-size:0.85rem; white-space:nowrap; }
+  .mi-add{ width:25px; height:25px; border-radius:50%; border:1.5px solid var(--chili); color:var(--chili); display:flex; align-items:center; justify-content:center; font-size:0.92rem; flex-shrink:0; }
+  .phone-cart{ background:var(--chili); color:var(--paper); padding:14px 20px; display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:0.88rem; font-weight:600; }
+
+  .showcase-copy .kicker{ font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--chili); display:block; margin-bottom:14px; }
+  .showcase-copy h2{ font-size:clamp(1.9rem,3.4vw,2.5rem); margin-bottom:18px; }
+  .feat-list{ margin-top:28px; display:flex; flex-direction:column; gap:20px; }
+  .feat-item{ display:flex; gap:16px; }
+  .feat-item .fi-mark{ width:22px; height:22px; flex-shrink:0; border:1.5px solid var(--teal); color:var(--teal); display:flex; align-items:center; justify-content:center; font-size:0.7rem; margin-top:2px; }
+  .feat-item h4{ font-size:1rem; font-weight:600; margin-bottom:3px; }
+  .feat-item p{ color:var(--ink-soft); font-size:0.92rem; }
+
+  /* ===== pricing ===== */
+  .section-dim{ background:var(--paper-dim); }
+  .price-head{ text-align:center; max-width:52ch; margin:0 auto 56px; }
+  .price-head .kicker{ font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--chili); display:block; margin-bottom:14px; }
+  .price-head h2{ font-size:clamp(1.9rem,3.4vw,2.5rem); }
+  .price-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  @media(max-width:900px){ .price-grid{ grid-template-columns:1fr; max-width:420px; margin:0 auto;} }
+  .price-card{ background:var(--paper); border:1.5px solid var(--line); padding:34px 28px; display:flex; flex-direction:column; transition:transform .2s ease, box-shadow .2s ease; }
+  .price-card:hover{ transform:translateY(-4px); box-shadow:0 24px 40px -28px rgba(33,29,24,0.35); }
+  @media(max-width:480px){ .price-card{ padding:26px 22px; } }
+  .price-card.featured{ border-color:var(--chili); position:relative; box-shadow:0 20px 40px -24px rgba(193,58,38,0.35); }
+  .price-card.featured::before{
+    content:"PALING DIPILIH"; position:absolute; top:-13px; left:28px;
+    background:var(--chili); color:var(--paper); font-family:'JetBrains Mono',monospace;
+    font-size:0.66rem; letter-spacing:0.06em; padding:4px 10px;
+  }
+  .price-card h3{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.05rem; margin-bottom:6px; }
+  .price-card .p-desc{ font-size:0.88rem; color:var(--ink-soft); margin-bottom:20px; min-height:36px; }
+  .price-card .p-amount{ font-family:'Fraunces',serif; font-size:2.3rem; font-weight:600; margin-bottom:2px; }
+  .price-card .p-amount span{ font-family:'Space Grotesk',sans-serif; font-size:0.85rem; font-weight:500; color:var(--ink-soft); }
+  .price-card .p-period{ font-size:0.8rem; color:var(--ink-soft); margin-bottom:24px; }
+  .price-card ul{ list-style:none; display:flex; flex-direction:column; gap:11px; margin-bottom:28px; flex:1; }
+  .price-card li{ font-size:0.88rem; display:flex; gap:9px; color:var(--ink); }
+  .price-card li::before{ content:"✓"; color:var(--teal); font-weight:700; flex-shrink:0; }
+  .price-card .btn{ width:100%; justify-content:center; }
+
+  /* ===== testimonials ===== */
+  .testi-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin-top:52px; }
+  @media(max-width:900px){ .testi-grid{ grid-template-columns:1fr; max-width:480px; margin:52px auto 0; } }
+  .testi-card{ background:var(--paper); border:1px solid var(--line); padding:28px 26px; transition:transform .2s ease, box-shadow .2s ease; }
+  .testi-card:hover{ transform:translateY(-3px); box-shadow:0 20px 34px -26px rgba(33,29,24,0.3); }
+  .testi-card p{ font-family:'Fraunces',serif; font-size:1.08rem; line-height:1.45; margin-bottom:22px; color:var(--ink); }
+  .testi-who{ display:flex; align-items:center; gap:12px; }
+  .testi-who .avatar{ width:38px; height:38px; border-radius:50%; background:var(--turmeric); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:600; color:var(--ink); font-size:0.95rem; }
+  .testi-who b{ font-size:0.9rem; display:block; }
+  .testi-who span{ font-size:0.78rem; color:var(--ink-soft); }
+
+  /* ===== faq ===== */
+  .faq-list{ max-width:760px; margin:0 auto; }
+  .faq-item{ border-bottom:1px solid var(--line); }
+  .faq-q{ width:100%; text-align:left; background:none; border:none; padding:22px 0; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-family:'Space Grotesk',sans-serif; font-size:1.02rem; font-weight:600; color:var(--ink); }
+  .faq-q .plus{ font-family:'JetBrains Mono',monospace; font-size:1.2rem; color:var(--chili); transition:transform .2s ease; flex-shrink:0; margin-left:16px; }
+  .faq-item.open .plus{ transform:rotate(45deg); }
+  .faq-a{ max-height:0; overflow:hidden; transition:max-height .25s ease; }
+  .faq-item.open .faq-a{ max-height:200px; }
+  .faq-a p{ padding-bottom:22px; color:var(--ink-soft); font-size:0.95rem; max-width:62ch; }
+
+  /* ===== final cta ===== */
+  .cta-final{ background:var(--ink); color:var(--paper); text-align:center; padding:96px 0; }
+  .cta-final h2{ font-size:clamp(2rem,4vw,3rem); color:var(--paper); margin-bottom:20px; }
+  .cta-final p{ color:rgba(251,247,239,0.65); max-width:48ch; margin:0 auto 36px; font-size:1.05rem; }
+  .cta-final .hero-cta{ justify-content:center; margin-bottom:0; }
+  .cta-final .btn-ghost{ border-color:rgba(251,247,239,0.4); color:var(--paper); }
+  .cta-final .btn-ghost:hover{ background:var(--paper); color:var(--ink); }
+  @media(max-width:600px){ .cta-final{ padding:64px 0; } .cta-final .hero-cta{ flex-direction:column; } .cta-final .btn{ width:100%; justify-content:center; } }
+
+  /* ===== footer ===== */
+  footer{ background:var(--ink); color:rgba(251,247,239,0.55); padding:36px 0; border-top:1px solid rgba(251,247,239,0.12); }
+  .foot-row{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; font-size:0.85rem; }
+  .foot-row a{ color:rgba(251,247,239,0.75); }
+  @media(max-width:600px){ .foot-row{ flex-direction:column; text-align:center; gap:10px; } }
+
+  /* ===== scroll reveal ===== */
+  .reveal{ opacity:0; transform:translateY(18px); transition:opacity .6s ease, transform .6s ease; }
+  .reveal.in{ opacity:1; transform:translateY(0); }
+  @media(prefers-reduced-motion: reduce){
+    .reveal{ opacity:1; transform:none; transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<svg style="display:none" aria-hidden="true">
+  <defs>
+    <symbol id="icon-rice" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="46" rx="24" ry="8" fill="#E2A73B"/>
+      <path d="M10 40 Q32 54 54 40 L52 32 Q32 42 12 32 Z" fill="#C13A26"/>
+      <path d="M14 30 Q32 40 50 30 Q46 18 32 16 Q18 18 14 30 Z" fill="#E2A73B"/>
+      <circle cx="32" cy="14" r="7" fill="#FBF7EF" stroke="#1F4B44" stroke-width="1.5"/>
+      <circle cx="32" cy="14" r="3" fill="#E2A73B"/>
+      <path d="M20 24 L18 20 M32 21 L32 16 M44 24 L46 20" stroke="#1F4B44" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    </symbol>
+    <symbol id="icon-coffee" viewBox="0 0 64 64">
+      <path d="M16 26 H42 L39 46 Q38 52 32 52 H26 Q20 52 19 46 Z" fill="#1F4B44"/>
+      <path d="M42 30 Q52 30 52 38 Q52 46 42 45" fill="none" stroke="#1F4B44" stroke-width="4"/>
+      <ellipse cx="29" cy="26" rx="13" ry="3" fill="#E2A73B"/>
+      <path d="M24 10 Q20 16 24 20 M32 8 Q28 14 32 18 M40 10 Q36 16 40 20" stroke="#C13A26" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-tea" viewBox="0 0 64 64">
+      <path d="M20 14 H44 L40 50 Q39.5 54 35 54 H29 Q24.5 54 24 50 Z" fill="#FBF7EF" stroke="#1F4B44" stroke-width="2"/>
+      <path d="M22 26 H42 L39.5 48 Q39 51 35 51 H29 Q25 51 24.5 48 Z" fill="#C13A26" opacity="0.85"/>
+      <circle cx="29" cy="34" r="3" fill="#FBF7EF" opacity="0.9"/>
+      <circle cx="36" cy="40" r="2.4" fill="#FBF7EF" opacity="0.9"/>
+      <circle cx="30" cy="44" r="2" fill="#FBF7EF" opacity="0.9"/>
+      <rect x="18" y="12" width="28" height="4" rx="2" fill="#1F4B44"/>
+    </symbol>
+    <symbol id="icon-satay" viewBox="0 0 64 64">
+      <line x1="12" y1="46" x2="50" y2="16" stroke="#1F4B44" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="18" y1="52" x2="56" y2="22" stroke="#1F4B44" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="24" cy="40" r="6" fill="#C13A26"/>
+      <circle cx="32" cy="33" r="6" fill="#E2A73B"/>
+      <circle cx="40" cy="26" r="6" fill="#C13A26"/>
+      <circle cx="30" cy="40" r="6" fill="#E2A73B"/>
+      <circle cx="38" cy="33" r="6" fill="#C13A26"/>
+      <circle cx="46" cy="26" r="6" fill="#E2A73B"/>
+    </symbol>
+    <symbol id="icon-bread" viewBox="0 0 64 64">
+      <rect x="12" y="18" width="40" height="30" rx="4" fill="#E2A73B"/>
+      <rect x="16" y="22" width="32" height="22" rx="2" fill="#C13A26"/>
+      <rect x="20" y="26" width="24" height="14" rx="1.5" fill="#FBF7EF" opacity="0.9"/>
+      <path d="M16 18 Q32 8 48 18" fill="none" stroke="#1F4B44" stroke-width="2"/>
+    </symbol>
+    <symbol id="icon-bowl" viewBox="0 0 64 64">
+      <path d="M10 30 H54 Q52 50 32 50 Q12 50 10 30 Z" fill="#1F4B44"/>
+      <ellipse cx="32" cy="30" rx="22" ry="6" fill="#E2A73B"/>
+      <path d="M14 30 Q32 38 50 30" fill="none" stroke="#C13A26" stroke-width="2.5" stroke-linecap="round"/>
+      <rect x="30" y="10" width="3" height="16" rx="1.5" fill="#1F4B44" transform="rotate(15 31.5 18)"/>
+    </symbol>
+    <symbol id="icon-step-scan" viewBox="0 0 64 64">
+      <rect x="20" y="8" width="24" height="42" rx="5" fill="#FBF7EF" stroke="#1F4B44" stroke-width="2.2"/>
+      <rect x="25" y="16" width="14" height="14" rx="1.5" fill="#1F4B44"/>
+      <rect x="28" y="19" width="8" height="8" fill="#FBF7EF"/>
+      <path d="M8 6 V18 M8 6 H20 M56 6 V18 M56 6 H44 M8 58 V46 M8 58 H20 M56 58 V46 M56 58 H44" fill="none" stroke="#C13A26" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-step-menu" viewBox="0 0 64 64">
+      <rect x="14" y="6" width="36" height="52" rx="6" fill="#FBF7EF" stroke="#1F4B44" stroke-width="2.2"/>
+      <rect x="20" y="14" width="24" height="5" rx="2" fill="#1F4B44"/>
+      <rect x="20" y="26" width="16" height="4" rx="2" fill="#E2A73B"/>
+      <rect x="20" y="33" width="20" height="3.4" rx="1.7" fill="#D9D0BE"/>
+      <rect x="20" y="41" width="16" height="4" rx="2" fill="#E2A73B"/>
+      <rect x="20" y="48" width="20" height="3.4" rx="1.7" fill="#D9D0BE"/>
+      <circle cx="46" cy="43" r="9" fill="#C13A26"/>
+      <path d="M42 43 h8 M46 39 v8" stroke="#FBF7EF" stroke-width="2.2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="icon-step-order" viewBox="0 0 64 64">
+      <path d="M14 10 H44 L50 16 V54 H14 Z" fill="#FBF7EF" stroke="#1F4B44" stroke-width="2.2"/>
+      <path d="M44 10 V16 H50 Z" fill="#D9D0BE"/>
+      <rect x="20" y="24" width="22" height="3.4" rx="1.7" fill="#D9D0BE"/>
+      <rect x="20" y="31" width="16" height="3.4" rx="1.7" fill="#D9D0BE"/>
+      <circle cx="34" cy="46" r="13" fill="#1F4B44"/>
+      <path d="M28 46 L32.5 51 L41 40" fill="none" stroke="#FBF7EF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header>
+  <div class="wrap">
+    <div class="nav">
+      <div class="logo"><span class="mark">W</span>WebResto-By Raffi Ahmad</div>
+      <nav class="nav-links">
+        <a href="#masalah">Masalah</a>
+        <a href="#cara-kerja">Cara Kerja</a>
+        <a href="#harga">Harga</a>
+        <a href="#faq">FAQ</a>
+        <a href="demo/demo-menu-webresto.html">Lihat Demo</a>
+      </nav>
+      <a href="#harga" class="btn btn-primary">Pesan Sekarang</a>
+      <button class="menu-toggle" id="menuToggle" aria-label="Buka menu"><span></span><span></span><span></span></button>
+    </div>
+    <nav class="mobile-panel" id="mobilePanel">
+      <a href="#masalah">Masalah</a>
+      <a href="#cara-kerja">Cara Kerja</a>
+      <a href="#harga">Harga</a>
+      <a href="#faq">FAQ</a>
+      <a href="demo/demo-menu-webresto.html">Lihat Demo</a>
+      <a href="#kontak" class="btn btn-primary" style="text-align:center; margin-top:10px;">Pesan Sekarang</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow-tag"><span class="dot"></span>untuk warung, kafe &amp; UMKM kuliner</span>
+      <h1>Pelanggan pesan dari meja. Kasir nggak salah catat lagi.</h1>
+      <p class="lead">Kami buatkan website menu dengan kode QR khusus untuk usaha Anda. Pelanggan tinggal scan di meja, lihat menu di HP, dan pesan langsung — tanpa antre, tanpa nunggu pelayan, tanpa nota yang kebaca salah.</p>
+      <div class="hero-cta">
+        <a href="#harga" class="btn btn-primary">Lihat Paket Harga</a>
+        <a href="#cara-kerja" class="btn btn-ghost">Cara Kerjanya</a>
+        <a href="demo/demo-menu-webresto.html" class="btn btn-ghost">Lihat Demo →</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><b>2 hari</b><span>menu Anda siap online</span></div>
+        <div class="stat"><b>0%</b><span>komisi per pesanan</span></div>
+        <div class="stat"><b>24/7</b><span>menu bisa diubah sendiri</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="receipt">
+        <div class="r-head"><b>WARUNG SUMBER REJEKI</b><span>MEJA 04 · SCAN &amp; PESAN</span></div>
+        <div class="qr-block">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <rect width="100" height="100" fill="#211D18"/>
+            <g fill="#FBF7EF">
+              <rect x="8" y="8" width="24" height="24"/><rect x="14" y="14" width="12" height="12" fill="#211D18"/>
+              <rect x="68" y="8" width="24" height="24"/><rect x="74" y="14" width="12" height="12" fill="#211D18"/>
+              <rect x="8" y="68" width="24" height="24"/><rect x="14" y="74" width="12" height="12" fill="#211D18"/>
+              <rect x="40" y="8" width="6" height="6"/><rect x="52" y="8" width="6" height="6"/>
+              <rect x="40" y="20" width="6" height="6"/><rect x="46" y="26" width="6" height="6"/>
+              <rect x="58" y="20" width="6" height="6"/><rect x="8" y="40" width="6" height="6"/>
+              <rect x="20" y="40" width="6" height="6"/><rect x="32" y="46" width="6" height="6"/>
+              <rect x="44" y="40" width="6" height="6"/><rect x="56" y="46" width="6" height="6"/>
+              <rect x="68" y="40" width="6" height="6"/><rect x="80" y="46" width="6" height="6"/>
+              <rect x="40" y="58" width="6" height="6"/><rect x="52" y="64" width="6" height="6"/>
+              <rect x="64" y="58" width="6" height="6"/><rect x="76" y="64" width="6" height="6"/>
+              <rect x="40" y="76" width="6" height="6"/><rect x="52" y="82" width="6" height="6"/>
+              <rect x="64" y="80" width="6" height="6"/><rect x="80" y="80" width="6" height="6"/>
+            </g>
+          </svg>
+        </div>
+        <div class="r-line"><span>Nasi Goreng Kampung</span><b>Rp 18.000</b></div>
+        <div class="r-line"><span>Es Teh Manis</span><b>Rp 5.000</b></div>
+        <div class="r-line"><span>Tahu Tempe Bacem</span><b>Rp 8.000</b></div>
+        <div class="r-total"><span>TOTAL</span><span>Rp 31.000</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="food-strip">
+  <div class="wrap food-strip-row">
+    <div class="food-chip"><div class="fc-icon" style="background:#FBF0DE;"><svg><use href="#icon-rice"/></svg></div><span>Nasi &amp; Mie</span></div>
+    <div class="food-chip"><div class="fc-icon" style="background:#F1E7D6;"><svg><use href="#icon-coffee"/></svg></div><span>Kopi &amp; Minuman</span></div>
+    <div class="food-chip"><div class="fc-icon" style="background:#F6E3DC;"><svg><use href="#icon-tea"/></svg></div><span>Es &amp; Teh</span></div>
+    <div class="food-chip"><div class="fc-icon" style="background:#F1E7D6;"><svg><use href="#icon-satay"/></svg></div><span>Sate &amp; Gorengan</span></div>
+    <div class="food-chip"><div class="fc-icon" style="background:#FBF0DE;"><svg><use href="#icon-bread"/></svg></div><span>Roti &amp; Snack</span></div>
+    <div class="food-chip"><div class="fc-icon" style="background:#E9EDE4;"><svg><use href="#icon-bowl"/></svg></div><span>Sup &amp; Bakso</span></div>
+  </div>
+</div>
+
+<div class="perf"></div>
+
+<section class="section section-teal reveal" id="masalah">
+  <div class="wrap">
+    <div class="problem-head">
+      <span class="kicker">MASALAH YANG SERING TERJADI</span>
+      <h2>Menu kertas dan pencatatan manual bikin usaha jalan di tempat</h2>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <span class="pnum">01</span>
+        <h3>Antrean menumpuk saat ramai</h3>
+        <p>Pelanggan berdiri menunggu giliran dipanggil, padahal meja masih kosong dan pesanan bisa langsung masuk ke dapur.</p>
+      </div>
+      <div class="problem-card">
+        <span class="pnum">02</span>
+        <h3>Nota tulisan tangan sering salah baca</h3>
+        <p>Pelayan buru-buru mencatat, tulisan susah dibaca di dapur, pesanan tertukar, dan pelanggan kecewa.</p>
+      </div>
+      <div class="problem-card">
+        <span class="pnum">03</span>
+        <h3>Menu kertas cepat usang</h3>
+        <p>Harga naik atau menu habis, tapi cetak ulang buku menu mahal dan repot — akhirnya dibiarkan tidak sesuai.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="perf on-teal"></div>
+
+<section class="section reveal" id="cara-kerja">
+  <div class="wrap">
+    <span class="kicker" style="font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--chili); display:block; margin-bottom:14px;">CARA KERJANYA</span>
+    <h2 style="font-size:clamp(1.9rem,3.4vw,2.5rem); max-width:30ch;">Dari meja ke dapur, tanpa kertas dan tanpa tunggu pelayan</h2>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="step-illus"><svg><use href="#icon-step-scan"/></svg></div>
+        <span class="step-num">LANGKAH 01</span>
+        <h3>Pelanggan scan QR di meja</h3>
+        <p>Setiap meja punya kode QR sendiri. Cukup arahkan kamera HP, tidak perlu instal aplikasi apa pun.</p>
+      </div>
+      <div class="how-step">
+        <div class="step-illus"><svg><use href="#icon-step-menu"/></svg></div>
+        <span class="step-num">LANGKAH 02</span>
+        <h3>Menu terbuka langsung di HP</h3>
+        <p>Daftar menu, foto, harga, dan status habis/tersedia tampil rapi, sudah otomatis tahu ini meja nomor berapa.</p>
+      </div>
+      <div class="how-step">
+        <div class="step-illus"><svg><use href="#icon-step-order"/></svg></div>
+        <span class="step-num">LANGKAH 03</span>
+        <h3>Pesanan masuk ke kasir/dapur</h3>
+        <p>Begitu pelanggan konfirmasi, pesanan langsung tercatat rapi — tidak ada lagi nota hilang atau salah tulis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-dim reveal">
+  <div class="wrap showcase">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-topbar">
+          <div class="shop">Kedai Kopi Ranting</div>
+          <div class="meja">MEJA 07 — BUKA</div>
+        </div>
+        <div class="menu-item">
+          <div class="mi-thumb" style="background:#F1E7D6;"><svg><use href="#icon-coffee"/></svg></div>
+          <div class="mi-body"><div class="mi-name">Kopi Gula Aren</div><div class="mi-desc">Espresso, susu, gula aren</div></div>
+          <div class="mi-side"><span class="mi-price">Rp 20rb</span><div class="mi-add">+</div></div>
+        </div>
+        <div class="menu-item">
+          <div class="mi-thumb" style="background:#FBF0DE;"><svg><use href="#icon-bread"/></svg></div>
+          <div class="mi-body"><div class="mi-name">Roti Bakar Cokelat</div><div class="mi-desc">Keju, cokelat, susu kental</div></div>
+          <div class="mi-side"><span class="mi-price">Rp 15rb</span><div class="mi-add">+</div></div>
+        </div>
+        <div class="menu-item" style="border-bottom:none;">
+          <div class="mi-thumb" style="background:#FBF0DE;"><svg><use href="#icon-rice"/></svg></div>
+          <div class="mi-body"><div class="mi-name">Nasi Goreng Kampung</div><div class="mi-desc">Pedas sedang, telur mata sapi</div></div>
+          <div class="mi-side"><span class="mi-price">Rp 22rb</span><div class="mi-add">+</div></div>
+        </div>
+        <div class="phone-cart"><span>3 item dipilih</span><span>Rp 57.000 →</span></div>
+      </div>
+    </div>
+    <div class="showcase-copy">
+      <span class="kicker">TAMPILAN MENU ANDA</span>
+      <h2>Menu Anda, tapi lebih mudah dikelola</h2>
+      <p style="color:var(--ink-soft); font-size:1.02rem; max-width:44ch;">Setiap website menu dibuat sesuai identitas usaha Anda — nama, logo, dan foto makanan sendiri. Anda yang pegang kendali, kami yang urus bagian teknisnya.</p>
+      <div class="feat-list">
+        <div class="feat-item"><div class="fi-mark">✓</div><div><h4>Ubah harga &amp; stok sendiri</h4><p>Tandai menu habis atau ubah harga kapan saja lewat panel sederhana, tanpa perlu tahu coding.</p></div></div>
+        <div class="feat-item"><div class="fi-mark">✓</div><div><h4>Satu QR per meja</h4><p>Sistem otomatis tahu pesanan datang dari meja mana, jadi tidak perlu tanya ulang ke pelanggan.</p></div></div>
+        <div class="feat-item"><div class="fi-mark">✓</div><div><h4>Ringan di semua HP</h4><p>Tetap cepat dibuka meski sinyal pas-pasan, tanpa perlu pelanggan instal aplikasi tambahan.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="perf"></div>
+
+<section class="section reveal" id="harga">
+  <div class="wrap">
+    <div class="price-head">
+      <span class="kicker">PAKET HARGA</span>
+      <h2>Pilih paket sesuai skala usaha Anda</h2>
+    </div>
+    <div class="price-grid">
+      <div class="price-card">
+        <h3>Warung</h3>
+        <p class="p-desc">Untuk warung makan atau kedai kecil dengan menu sederhana.</p>
+        <div class="p-amount">Rp 350<span>rb</span></div>
+        <div class="p-period">sekali bayar + Rp 0/bulan</div>
+        <ul>
+          <li>1 website menu QR</li>
+          <li>Hingga 5 kode QR meja</li>
+          <li>30 item menu</li>
+          <li>Update menu sendiri</li>
+        </ul>
+        <a href="#kontak" class="btn btn-ghost">Pilih Paket</a>
+      </div>
+      <div class="price-card featured">
+        <h3>Kafe</h3>
+        <p class="p-desc">Untuk kafe atau resto dengan menu yang sering berubah.</p>
+        <div class="p-amount">Rp 650<span>rb</span></div>
+        <div class="p-period">sekali bayar + Rp 30rb/bulan</div>
+        <ul>
+          <li>Semua di paket Warung</li>
+          <li>Hingga 15 kode QR meja</li>
+          <li>Menu tanpa batas</li>
+          <li>Notifikasi pesanan ke kasir</li>
+          <li>Ganti desain kapan saja</li>
+        </ul>
+        <a href="#kontak" class="btn btn-primary">Pilih Paket</a>
+      </div>
+      <div class="price-card">
+        <h3>UMKM+</h3>
+        <p class="p-desc">Untuk usaha dengan beberapa cabang atau outlet.</p>
+        <div class="p-amount">Hubungi</div>
+        <div class="p-period">harga disesuaikan kebutuhan</div>
+        <ul>
+          <li>Semua di paket Kafe</li>
+          <li>Multi-cabang, 1 dasbor</li>
+          <li>Laporan penjualan mingguan</li>
+          <li>Pendampingan pemasangan</li>
+        </ul>
+        <a href="#kontak" class="btn btn-ghost">Diskusi Kebutuhan</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-dim reveal">
+  <div class="wrap">
+    <div class="price-head" style="margin-bottom:0;">
+      <span class="kicker">KATA MEREKA</span>
+      <h2>Sudah dipakai usaha kuliner rumahan</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <p>"Sejak pakai menu QR, pesanan yang tertukar hampir tidak ada lagi. Pelayan juga jadi lebih santai kerjanya."</p>
+        <div class="testi-who"><div class="avatar">S</div><div><b>Ibu Sri</b><span>Warung Sumber Rejeki, Bandung</span></div></div>
+      </div>
+      <div class="testi-card">
+        <p>"Ganti harga kopi pas naik bahan baku, tinggal edit sendiri dari HP. Nggak perlu cetak menu baru lagi."</p>
+        <div class="testi-who"><div class="avatar">R</div><div><b>Rangga</b><span>Kedai Kopi Ranting, Yogyakarta</span></div></div>
+      </div>
+      <div class="testi-card">
+        <p>"Jam makan siang yang tadinya ramai banget dan bikin panik, sekarang lebih teratur karena pesanan masuk urut."</p>
+        <div class="testi-who"><div class="avatar">D</div><div><b>Dewi</b><span>UMKM Katering Ampuh, Surabaya</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section reveal" id="faq">
+  <div class="wrap">
+    <div class="price-head">
+      <span class="kicker">PERTANYAAN UMUM</span>
+      <h2>Yang biasa ditanyakan sebelum mulai</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q">Apakah pelanggan harus instal aplikasi?<span class="plus">+</span></button>
+        <div class="faq-a"><p>Tidak. Pelanggan cukup buka kamera HP, arahkan ke kode QR di meja, lalu menu terbuka langsung di browser tanpa perlu instal apa pun.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Bagaimana kalau saya belum pernah punya website?<span class="plus">+</span></button>
+        <div class="faq-a"><p>Tidak masalah. Tim kami yang mengurus pembuatan dan pemasangannya dari awal sampai kode QR siap dicetak dan ditempel di meja.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Apakah saya bisa ubah menu sendiri setelah website jadi?<span class="plus">+</span></button>
+        <div class="faq-a"><p>Bisa. Anda mendapat panel sederhana untuk mengubah harga, foto, dan status stok menu kapan saja tanpa perlu menghubungi kami.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q">Apakah ada biaya per transaksi atau komisi?<span class="plus">+</span></button>
+        <div class="faq-a"><p>Tidak ada. Anda hanya membayar biaya paket yang dipilih — tidak ada potongan dari setiap pesanan yang masuk.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-final" id="kontak">
+  <div class="wrap">
+    <h2>Siap bikin antrean di warung Anda hilang?</h2>
+    <p>Kirim nama usaha dan menu yang ingin ditampilkan, tim kami hubungi dalam 1x24 jam untuk mulai proses pembuatan.</p>
+    <div class="hero-cta">
+      <a href="https://wa.me/6285183053309" class="btn btn-primary">Chat via WhatsApp</a>
+      <a href="mailto:webresto@gmail.com" class="btn btn-ghost">webresto@gmail.com</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-row">
+    <span>© 2026 WebResto — Raffi Ahmad Syarief</span>
+    <span><a href="#masalah">Masalah</a> &nbsp;·&nbsp; <a href="#cara-kerja">Cara Kerja</a> &nbsp;·&nbsp; <a href="#harga">Harga</a> &nbsp;·&nbsp; <a href="#faq">FAQ</a></span>
+  </div>
+</footer>
+
+<script>
+  if('IntersectionObserver' in window){
+    var revealObserver = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.isIntersecting){
+          entry.target.classList.add('in');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold:0.12 });
+    document.querySelectorAll('.reveal').forEach(function(el){ revealObserver.observe(el); });
+  } else {
+    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+  }
+
+  var menuToggle = document.getElementById('menuToggle');
+  var mobilePanel = document.getElementById('mobilePanel');
+  menuToggle.addEventListener('click', function(){
+    menuToggle.classList.toggle('open');
+    mobilePanel.classList.toggle('open');
+  });
+  mobilePanel.querySelectorAll('a').forEach(function(a){
+    a.addEventListener('click', function(){
+      menuToggle.classList.remove('open');
+      mobilePanel.classList.remove('open');
+    });
+  });
+
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    var q = item.querySelector('.faq-q');
+    q.addEventListener('click', function(){
+      var wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(function(i){ i.classList.remove('open'); });
+      if(!wasOpen) item.classList.add('open');
+    });
+  });
+</script>
+
+</body>
+</html>
